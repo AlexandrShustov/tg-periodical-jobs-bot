@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28803.452
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TelegramReminder", "TelegramReminder\TelegramReminder.csproj", "{F96A8EC3-C525-4B47-BD01-75007E9512AA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F96A8EC3-C525-4B47-BD01-75007E9512AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F96A8EC3-C525-4B47-BD01-75007E9512AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F96A8EC3-C525-4B47-BD01-75007E9512AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F96A8EC3-C525-4B47-BD01-75007E9512AA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9109B04A-D8D3-4E89-9692-953E8E61C103}
+	EndGlobalSection
+EndGlobal
