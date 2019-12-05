@@ -6,8 +6,8 @@ namespace TelegramReminder.Model
     public interface IPeriodicalJob
     {
         string CronIntervalExpression { get; }
-        bool AutoRestart { get; }
         TimeZoneInfo TimeZone { get; } 
+        bool AutoRestart { get; }
 
         Task Execute();
     }

@@ -1,39 +1,40 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
 using TelegramReminder.Model.Abstract;
+using TelegramReminder.Model.Extensions;
 
 namespace TelegramReminder.Model.Concrete.Commands
 {
     public class ChangeTitleCommand : TelegramBotCmd
     {
         public override string Tag => "set_title";
+        public override IEnumerable<string> RequiredArgs { get; } = new List<string> { "cron", "deadline", "message", };
 
         public ChangeTitleCommand(TelegramBot bot) : base(bot)
         { }
 
         public override async Task Execute(Update update, CommandArgs command)
         {
-            var chatId = update?.Message?.Chat.Id ?? 0;
+            var message = command.ArgumentOrEmpty("message");
+            var deadline = command.ArgumentOrEmpty("deadline");
 
-            var hasMessage = command.Args.TryGetValue("message", out var message);
-            var hasTime = command.Args.TryGetValue("while", out var time);
-            
-            if(hasMessage && hasTime)
+            if (message.IsNullOrEmpty() || deadline.IsNullOrEmpty())
+                return;
+
+            try
             {
-                try
-                {
-                    var dateTime = DateTime.ParseExact(time, "dd/MM/yyyy", null);
+                var dateTime = DateTime.ParseExact(deadline, "dd/MM/yyyy", null);
 
-                    var daysToWait = (int)(dateTime - DateTime.UtcNow).TotalDays;
-                    var title = string.Format(message, daysToWait.ToString());
+                var daysToWait = (int)(dateTime - DateTime.UtcNow).TotalDays;
+                var title = string.Format(message, daysToWait.ToString());
 
-                    await Bot.Client.SetChatTitleAsync(chatId, title);
-                }
-                catch(Exception e)
-                {
-                    await Bot.Client.SendTextMessageAsync(chatId, $"Something went wrong: {e.Message}");
-                }
+                await Bot.Client.SetChatTitleAsync(update.ChatId(), title);
+            }
+            catch (Exception e)
+            {
+                await Bot.Client.SendTextMessageAsync(update.ChatId(), $"Something went wrong: {e.Message}");
             }
         }
     }

@@ -7,11 +7,11 @@ namespace TelegramReminder.Model
     public class ParseResult
     {
         public string Mention { get; set; }
-        public string Command { get; set; }
+        public string Tag { get; set; }
 
         public IReadOnlyDictionary<string, string> Arguments { get; set; }
 
-        public bool IsValid => Mention != null && Command != null; //Arguments can be null, because command can be without arguments
+        public bool IsValid => Tag != null; //Arguments can be null, because command can be without arguments
 
         public override string ToString()
         {
@@ -20,7 +20,7 @@ namespace TelegramReminder.Model
                            "Args: {2}\n";
 
             var mention = Mention ?? "none";
-            var command = Command ?? "none";
+            var command = Tag ?? "none";
             var args = string
                 .Join("-", Arguments?
                 .Select(a => $"k:{a.Key} v:{a.Value}") ?? new[] { "none" });
@@ -29,33 +29,26 @@ namespace TelegramReminder.Model
 
             return res;
         }
-
-        public string ArgumentOrEmpty (string key)
-        {
-            if (Arguments == null || !Arguments.Any())
-                return string.Empty;
-
-            var contains = Arguments.TryGetValue(key, out var result);
-
-            if (contains is false)
-                return string.Empty;
-
-            return result;
-        }
     }
 
-    public class CommandParser
+    public class Input
     {
         public const string MentionRegex = @"^[@](?:[^\s]*)";
         public const string CommandRegex = @"[\/](?:[^\s]*)";
         public const string ArgumentsRegex = @"\w+(?::)\"".*?\""";
 
+        public static IEnumerable<string> Errors => _errors;
+
+        private static List<string> _errors = new List<string>();
+
         public static ParseResult Parse(string text)
         {
+            _errors.Clear();
+
             return new ParseResult
             {
                 Mention = MentionIn(text),
-                Command = CommandIn(text),
+                Tag = CommandIn(text),
                 Arguments = ArgumentsIn(text)
             };
         }
@@ -85,6 +78,7 @@ namespace TelegramReminder.Model
                 return valueByArgument;
             }
 
+            _errors.Add("Couldn`t parse arguments");
             return null;
         }
 
@@ -105,6 +99,7 @@ namespace TelegramReminder.Model
             if (matches.Any())
                 return matches.First().Value.Replace("/", "");
 
+            _errors.Add("Couldn`t parse command");
             return null;
         }
     }

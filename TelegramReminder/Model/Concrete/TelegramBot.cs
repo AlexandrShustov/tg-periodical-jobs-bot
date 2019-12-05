@@ -13,18 +13,22 @@ namespace TelegramReminder.Model.Concrete
     {
         public readonly TelegramBotClient Client;
 
+        private User _user;
         private readonly List<TelegramBotCmd> _knownCommands = new List<TelegramBotCmd>();
 
         public TelegramBot(string token, string webhookUrl)
         {
             Client = new TelegramBotClient(token);
             Client.SetWebhookAsync(webhookUrl).Wait();
-
+                        
             _knownCommands.Add(new ChangeTitleCommand(this));
         }
 
-        public bool CanUnderstand(string tag) =>
-            _knownCommands.Any(c => c.Tag == tag);
+        public async Task<User> User() =>
+            _user ?? (_user = await Client.GetMeAsync());
+
+        public bool CanExecute(CommandArgs args) =>
+            _knownCommands.Any(c => c.CanBeExecuted(args));
 
         internal Task Execute(Update update, CommandArgs commandArgs)
         {

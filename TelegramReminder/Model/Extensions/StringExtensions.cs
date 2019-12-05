@@ -36,5 +36,8 @@ namespace TelegramReminder.Model.Extensions
                 return default;
             }
         }
+
+        public static bool IsNullOrEmpty(this string self) =>
+            self == null || self == string.Empty;
     }
 }

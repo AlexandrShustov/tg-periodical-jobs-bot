@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,6 +9,7 @@ using TelegramReminder.Model.Abstract;
 using TelegramReminder.Model.Concrete;
 using TelegramReminder.Model.Extensions;
 using TelegramReminder.Model.Jobs;
+using TelegramReminder.Model.JobSelection;
 
 namespace TelegramReminder.Controllers
 {
@@ -29,53 +29,37 @@ namespace TelegramReminder.Controllers
         [Route("api/bot/update")]
         public async Task<IActionResult> Update([FromBody]Update update)
         {
-            if (await HasBotMention(update) is false)
+            var message = update?.Message?.Text;
+            if (message.IsNullOrEmpty())
+                return BadRequest();
+
+            if (!update.HasMentionOf(await _bot.User()))
                 return Ok();
 
-            var message = update.Message.Text;
-            var result = CommandParser.Parse(message);
-            await $"Parsed to:\n {result.ToString()}".AsMessageTo(update.ChatId(), _bot.Client);  
+            var parseResult = Input.Parse(message);
 
-            if (!result.IsValid)
+            if (Input.Errors.Any())
             {
-                await $"Invalid command or anything else".AsMessageTo(update.ChatId(), _bot.Client);
+                foreach (var error in Input.Errors)
+                    await error.AsMessageTo(update.ChatId(), _bot.Client);
+
                 return Ok();
             }
 
-            await result.Command
-                .IfNullOrEmpty($"Cant recognize a command"
-                    .AsMessageTo(update.ChatId(), _bot.Client));
+            await $"Parsed to:\n {parseResult.ToString()}"
+                .AsMessageTo(update.ChatId(), _bot.Client);
 
-            var cron = result.ArgumentOrEmpty("cron");
-            await cron
-                .IfNullOrEmpty($"Cant recognize a Cron expression"
-                    .AsMessageTo(update.ChatId(), _bot.Client));
+            var args = new CommandArgs(parseResult.Tag, parseResult.Arguments);
 
-            var autorestart = result.ArgumentOrEmpty("autorestart").ToBool();
-            var timezone = result.ArgumentOrEmpty("timezone").ToTimeZone();
+            var job = Jobs
+                .FirstSatisfiedBy(args)
+                .Select(update, _bot, args);
 
-            var args = new CommandArgs() { Tag = result.Command, Args = result.Arguments };
-            var job = new TelegramJob(update, _bot, args)
-                .WithCrone(cron)
-                .WithAutoRestart(autorestart)
-                .WithTimeZone(timezone);
-
-            await $"Starting a job...".AsMessageTo(update.ChatId(), _bot.Client);
+            await $"Starting a job..."
+                .AsMessageTo(update.ChatId(), _bot.Client);
 
             _jobs.Push(job);
             return Ok();
-        }
-
-        private async Task<bool> HasBotMention(Update update)
-        {
-            var botUser = await _bot.Client.GetMeAsync(); 
-
-            if(update.Message?.Entities.Any(e => e.Type == Telegram.Bot.Types.Enums.MessageEntityType.Mention) == true)
-            {
-                return update.Message.Text.Contains(botUser.Username);
-            }
-
-            return false;
         }
 
         [HttpPost]
@@ -88,46 +72,22 @@ namespace TelegramReminder.Controllers
                 message = await reader.ReadToEndAsync();
             }
 
-            var result = CommandParser.Parse(message);
-
-            if (!result.IsValid)
-            {
+            if (message.IsNullOrEmpty())
                 return BadRequest();
-            }
 
-            var args = new CommandArgs() { Tag = result.Command, Args = result.Arguments };
-            var hasCron = result.Arguments.TryGetValue("cron", out var cron);
+            var parseResult = Input.Parse(message);
 
-            if (hasCron is false)
+            if (Input.Errors.Any())
             {
                 return Ok();
             }
 
-            var hasAutoRestart = result.Arguments.TryGetValue("autorestart", out var autoRestart);
-            var shouldAutoRestart = hasAutoRestart is false
-                ? false
-                : Convert.ToBoolean(autoRestart);
-
-            var hasTimeZone = result.Arguments.TryGetValue("timezone", out var timeZoneString);
-
-            TimeZoneInfo timeZone = null;
-            if (hasTimeZone)
-            {
-                try
-                {
-                    timeZone = TimeZoneInfo.FindSystemTimeZoneById(timeZoneString);
-                }
-                catch (Exception ex)
-                {
-                    //await _bot.Client.SendTextMessageAsync(update.Message.Chat.Id, $"Error {ex.Message}");
-                    return Ok();
-                }
-            }
+            var args = new CommandArgs(parseResult.Tag, parseResult.Arguments);
 
             var job = new LogOutputMessageJob();
-            job.WithZone(timeZone);
-            _jobs.Push(job);
+            job.WithZone(args.ArgumentOrEmpty("timezone").ToTimeZone());
 
+            _jobs.Push(job);
             return Ok();
         }
     }
