@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
 using TelegramReminder.Model.Abstract;
+using TelegramReminder.Model.Concrete.Commands.Tasks;
 using TelegramReminder.Model.Extensions;
 
 namespace TelegramReminder.Model.Concrete.Commands
 {
-    public class ChangeTitleCommand : TelegramBotCmd
+    public class ChangeTitleCommand : Command, IDelayed
     {
         public override string Tag => "set_title";
         public override IEnumerable<string> RequiredArgs { get; } = new List<string> { "cron", "deadline", "message", };
@@ -15,10 +16,10 @@ namespace TelegramReminder.Model.Concrete.Commands
         public ChangeTitleCommand(TelegramBot bot) : base(bot)
         { }
 
-        public override async Task Execute(Update update, CommandArgs command)
+        public override async Task Execute(Update update, CommandArgs args)
         {
-            var message = command.ArgumentOrEmpty("message");
-            var deadline = command.ArgumentOrEmpty("deadline");
+            var message = args.ArgumentOrEmpty("message");
+            var deadline = args.ArgumentOrEmpty("deadline");
 
             if (message.IsNullOrEmpty() || deadline.IsNullOrEmpty())
                 return;
@@ -36,6 +37,19 @@ namespace TelegramReminder.Model.Concrete.Commands
             {
                 await Bot.Client.SendTextMessageAsync(update.ChatId(), $"Something went wrong: {e.Message}");
             }
+        }
+
+        public IDelayedTask ToDelayedTask(CommandArgs args, Update update)
+        {
+            var cron = args.ArgumentOrEmpty("cron");
+            var autorestart = args.ArgumentOrEmpty("autorestart").ToBool();
+            var timezone = args.ArgumentOrEmpty("timezone").ToTimeZone();
+
+            var job = new TelegramDelayedTask(update, this, args, cron)
+                .WithAutoRestart(autorestart)
+                .WithTimezone(timezone);
+
+            return job;
         }
     }
 }

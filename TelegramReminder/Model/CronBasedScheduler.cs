@@ -6,25 +6,21 @@ namespace TelegramReminder.Model
 {
     public class CronBasedScheduler
     {
-        private IPeriodicalJob _job;
+        private IDelayedTask _job;
         private bool _autoRestart;
 
-        public CronBasedScheduler Schedule(IPeriodicalJob job)
+        public CronBasedScheduler Schedule(IDelayedTask job)
         {
             _job = job;
-            return this;
-        }
+            _autoRestart = job.AutoRestart;
 
-        public CronBasedScheduler WithAutoRestart(bool value)
-        {
-            _autoRestart = value;
             return this;
         }
 
         public void Start()
         {
             var timeToWait = CronExpression
-                .Parse(_job.CronIntervalExpression)
+                .Parse(_job.Cron)
                 .GetNextOccurrence(DateTime.UtcNow, _job.TimeZone).Value;
 
             var now = DateTime.UtcNow;

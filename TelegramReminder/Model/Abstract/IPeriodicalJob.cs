@@ -3,9 +3,9 @@ using System.Threading.Tasks;
 
 namespace TelegramReminder.Model
 {
-    public interface IPeriodicalJob
+    public interface IDelayedTask
     {
-        string CronIntervalExpression { get; }
+        string Cron { get; }
         TimeZoneInfo TimeZone { get; } 
         bool AutoRestart { get; }
 

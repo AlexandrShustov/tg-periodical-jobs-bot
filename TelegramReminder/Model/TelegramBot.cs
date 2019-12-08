@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Telegram.Bot;
@@ -13,8 +12,10 @@ namespace TelegramReminder.Model.Concrete
     {
         public readonly TelegramBotClient Client;
 
+        private List<CronBasedScheduler> _scheduledJobs;
+
         private User _user;
-        private readonly List<TelegramBotCmd> _knownCommands = new List<TelegramBotCmd>();
+        private readonly List<Command> _knownCommands = new List<Command>();
 
         public TelegramBot(string token, string webhookUrl)
         {
@@ -22,6 +23,7 @@ namespace TelegramReminder.Model.Concrete
             Client.SetWebhookAsync(webhookUrl).Wait();
                         
             _knownCommands.Add(new ChangeTitleCommand(this));
+            _scheduledJobs = new List<CronBasedScheduler>();
         }
 
         public async Task<User> User() =>
@@ -37,6 +39,18 @@ namespace TelegramReminder.Model.Concrete
 
             if (command == null)
                 return Task.CompletedTask;
+
+            if(command is IDelayed)
+            {
+                var delayedCommand = command as IDelayed;
+                var job = delayedCommand.ToDelayedTask(commandArgs, update);
+
+                var scheduler = new CronBasedScheduler().Schedule(job);
+                scheduler.Start();
+
+                _scheduledJobs.Add(scheduler);
+                return Task.CompletedTask;
+            }
 
             return command.Execute(update, commandArgs);
         }

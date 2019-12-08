@@ -5,11 +5,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Telegram.Bot.Types;
 using TelegramReminder.Model;
-using TelegramReminder.Model.Abstract;
 using TelegramReminder.Model.Concrete;
 using TelegramReminder.Model.Extensions;
-using TelegramReminder.Model.Jobs;
-using TelegramReminder.Model.JobSelection;
 
 namespace TelegramReminder.Controllers
 {
@@ -17,12 +14,10 @@ namespace TelegramReminder.Controllers
     public class UpdateListeningController : Controller
     {
         private readonly TelegramBot _bot;
-        private readonly IPeriodicalJobs _jobs;
 
-        public UpdateListeningController(TelegramBot bot, IPeriodicalJobs jobs)
+        public UpdateListeningController(TelegramBot bot)
         {
             _bot = bot;
-            _jobs = jobs;
         }
 
         [HttpPost]
@@ -51,14 +46,11 @@ namespace TelegramReminder.Controllers
 
             var args = new CommandArgs(parseResult.Tag, parseResult.Arguments);
 
-            var job = Jobs
-                .FirstSatisfiedBy(args)
-                .Select(update, _bot, args);
+            if (_bot.CanExecute(args))
+                await _bot.Execute(update, args);
+            else
+                await $"Couldn`t execute command".AsMessageTo(update.ChatId(), _bot.Client);
 
-            await $"Starting a job..."
-                .AsMessageTo(update.ChatId(), _bot.Client);
-
-            _jobs.Push(job);
             return Ok();
         }
 
@@ -79,15 +71,17 @@ namespace TelegramReminder.Controllers
 
             if (Input.Errors.Any())
             {
+                foreach (var error in Input.Errors)
+                    continue;
+
                 return Ok();
             }
 
             var args = new CommandArgs(parseResult.Tag, parseResult.Arguments);
 
-            var job = new LogOutputMessageJob();
-            job.WithZone(args.ArgumentOrEmpty("timezone").ToTimeZone());
+            if (_bot.CanExecute(args))
+                await _bot.Execute(null, args);
 
-            _jobs.Push(job);
             return Ok();
         }
     }

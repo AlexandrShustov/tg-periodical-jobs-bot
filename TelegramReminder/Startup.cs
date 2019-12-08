@@ -5,9 +5,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using TelegramReminder.Extensions;
-using TelegramReminder.Model.Abstract;
-using TelegramReminder.Model.Concrete;
-using TelegramReminder.Services;
 
 namespace TelegramReminder
 {
@@ -26,8 +23,6 @@ namespace TelegramReminder
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
             services.AddTelegramBot(Configuration);
-            services.AddSingleton<IPeriodicalJobs, PeriodicalJobs>();
-            services.AddHostedService<PeriodicalJobsService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

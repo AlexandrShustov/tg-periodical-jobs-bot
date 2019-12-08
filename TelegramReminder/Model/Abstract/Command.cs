@@ -6,25 +6,25 @@ using TelegramReminder.Model.Concrete;
 
 namespace TelegramReminder.Model.Abstract
 {
-    public abstract class TelegramBotCmd
+    public abstract class Command
     {
         public abstract string Tag { get; }
         public abstract IEnumerable<string> RequiredArgs { get; }
 
         protected readonly TelegramBot Bot;
 
-        public TelegramBotCmd(TelegramBot bot) =>
+        public Command(TelegramBot bot) =>
             Bot = bot;
 
-        public abstract Task Execute(Update update, CommandArgs args);
-
-        public virtual bool CanBeExecuted(CommandArgs args)
+        public virtual bool CanBeExecuted(CommandArgs cmdArgs)
         {
             var hasAllRequiredParams = RequiredArgs
-                .All(a => args.Args
+                .All(a => cmdArgs.Args
                     .TryGetValue(a, out var _));
 
-            return args.Tag == Tag && hasAllRequiredParams;
+            return cmdArgs.Tag == Tag && hasAllRequiredParams;
         }
+
+        public abstract Task Execute(Update update, CommandArgs args);
     }
 }
