@@ -5,6 +5,7 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using TelegramReminder.Model.Abstract;
 using TelegramReminder.Model.Concrete.Commands;
+using TelegramReminder.Model.Concrete.Commands.Tasks;
 
 namespace TelegramReminder.Model.Concrete
 {
@@ -12,7 +13,8 @@ namespace TelegramReminder.Model.Concrete
     {
         public readonly TelegramBotClient Client;
 
-        private List<CronBasedScheduler> _scheduledJobs;
+        private List<CronBasedScheduler> _runningTasks;
+        public IEnumerable<string> Tasks => _runningTasks.Select(t => t.DelayedTask.Name);
 
         private User _user;
         private readonly List<Command> _knownCommands = new List<Command>();
@@ -21,9 +23,14 @@ namespace TelegramReminder.Model.Concrete
         {
             Client = new TelegramBotClient(token);
             Client.SetWebhookAsync(webhookUrl).Wait();
-                        
-            _knownCommands.Add(new ChangeTitleCommand(this));
-            _scheduledJobs = new List<CronBasedScheduler>();
+
+            _knownCommands.AddRange(new Command[]
+            {
+                new ChangeTitleCommand(this),
+                new GetRunningTasksCmd(this)
+            });
+
+            _runningTasks = new List<CronBasedScheduler>();
         }
 
         public async Task<User> User() =>
@@ -48,7 +55,7 @@ namespace TelegramReminder.Model.Concrete
                 var scheduler = new CronBasedScheduler().Schedule(job);
                 scheduler.Start();
 
-                _scheduledJobs.Add(scheduler);
+                _runningTasks.Add(scheduler);
                 return Task.CompletedTask;
             }
 

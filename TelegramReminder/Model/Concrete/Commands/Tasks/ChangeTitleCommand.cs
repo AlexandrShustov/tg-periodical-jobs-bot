@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
 using TelegramReminder.Model.Abstract;
-using TelegramReminder.Model.Concrete.Commands.Tasks;
 using TelegramReminder.Model.Extensions;
 
-namespace TelegramReminder.Model.Concrete.Commands
+namespace TelegramReminder.Model.Concrete.Commands.Tasks
 {
     public class ChangeTitleCommand : Command, IDelayed
     {

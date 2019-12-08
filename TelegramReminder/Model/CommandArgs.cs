@@ -12,7 +12,7 @@ namespace TelegramReminder.Model
         public CommandArgs(string tag, IReadOnlyDictionary<string, string> args)
         {
             Tag = tag;
-            Args = args;
+            Args = args ?? new Dictionary<string, string>();
         }
 
         public bool Has(string arg) => 
@@ -20,7 +20,7 @@ namespace TelegramReminder.Model
 
         public string ArgumentOrEmpty(string key)
         {
-            if (Args == null || !Args.Any())
+            if (!Args.Any())
                 return string.Empty;
 
             var contains = Args.TryGetValue(key, out var result);

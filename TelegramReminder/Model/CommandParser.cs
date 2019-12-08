@@ -21,9 +21,9 @@ namespace TelegramReminder.Model
 
             var mention = Mention ?? "none";
             var command = Tag ?? "none";
-            var args = string
+            var args = "\n-" + string
                 .Join("-", Arguments?
-                .Select(a => $"k:{a.Key} v:{a.Value}") ?? new[] { "none" });
+                .Select(a => $" {a.Key} : {a.Value} \n") ?? new[] { "none" });
 
             var res = string.Format(template, mention, command, args);
 
@@ -67,7 +67,10 @@ namespace TelegramReminder.Model
                     var parts = match.Value.Split(':');
 
                     if (parts.Count() < 2)
+                    {
+                        _errors.Add("Couldn`t parse arguments");
                         return null;
+                    }
 
                     var arg = parts[0];
                     var value = parts[1].Replace("\"", string.Empty);
@@ -78,7 +81,6 @@ namespace TelegramReminder.Model
                 return valueByArgument;
             }
 
-            _errors.Add("Couldn`t parse arguments");
             return null;
         }
 

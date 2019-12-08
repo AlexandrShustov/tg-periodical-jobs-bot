@@ -6,13 +6,14 @@ namespace TelegramReminder.Model
 {
     public class CronBasedScheduler
     {
-        private IDelayedTask _job;
+        public IDelayedTask DelayedTask { get; private set; }
+
         private bool _autoRestart;
 
-        public CronBasedScheduler Schedule(IDelayedTask job)
+        public CronBasedScheduler Schedule(IDelayedTask task)
         {
-            _job = job;
-            _autoRestart = job.AutoRestart;
+            DelayedTask = task;
+            _autoRestart = task.AutoRestart;
 
             return this;
         }
@@ -20,8 +21,8 @@ namespace TelegramReminder.Model
         public void Start()
         {
             var timeToWait = CronExpression
-                .Parse(_job.Cron)
-                .GetNextOccurrence(DateTime.UtcNow, _job.TimeZone).Value;
+                .Parse(DelayedTask.Cron)
+                .GetNextOccurrence(DateTime.UtcNow, DelayedTask.TimeZone).Value;
 
             var now = DateTime.UtcNow;
 
@@ -31,7 +32,7 @@ namespace TelegramReminder.Model
 
         private async Task InvokeEventAndRestartIfNeeded()
         {
-            await _job.Execute();
+            await DelayedTask.Execute();
 
             if (!_autoRestart)
                 return;

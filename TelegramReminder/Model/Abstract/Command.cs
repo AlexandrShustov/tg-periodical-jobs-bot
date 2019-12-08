@@ -9,7 +9,7 @@ namespace TelegramReminder.Model.Abstract
     public abstract class Command
     {
         public abstract string Tag { get; }
-        public abstract IEnumerable<string> RequiredArgs { get; }
+        public virtual IEnumerable<string> RequiredArgs { get; } = Enumerable.Empty<string>();
 
         protected readonly TelegramBot Bot;
 

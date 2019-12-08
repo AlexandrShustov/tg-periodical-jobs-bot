@@ -7,6 +7,8 @@ namespace TelegramReminder.Model.Concrete.Commands.Tasks
 {
     public class TelegramDelayedTask : IDelayedTask
     {
+        public string Name => _cmd?.Tag ?? "undefined";
+
         public string Cron { get; protected set; }
         public TimeZoneInfo TimeZone { get; protected set; }
         public bool AutoRestart { get; protected set; }
