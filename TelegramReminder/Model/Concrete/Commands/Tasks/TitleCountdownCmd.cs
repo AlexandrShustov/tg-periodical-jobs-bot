@@ -35,7 +35,8 @@ namespace TelegramReminder.Model.Concrete.Commands.Tasks
             }
             catch (Exception e)
             {
-                await Bot.Client.SendTextMessageAsync(update.ChatId(), $"Something went wrong: {e.Message}");
+                await $"Something went wrong: {e.Message}"
+                    .AsMessageTo(update.ChatId(), Bot.Client);
             }
         }
 
