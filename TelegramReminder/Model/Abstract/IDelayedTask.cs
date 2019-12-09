@@ -9,6 +9,8 @@ namespace TelegramReminder.Model
 
         string Cron { get; }
         TimeZoneInfo TimeZone { get; } 
+        DateTime Deadline { get; }
+        bool CanBeStarted { get; }
         bool AutoRestart { get; }
 
         Task Execute();

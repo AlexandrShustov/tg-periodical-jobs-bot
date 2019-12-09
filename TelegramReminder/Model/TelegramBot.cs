@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Telegram.Bot;
@@ -13,7 +14,7 @@ namespace TelegramReminder.Model.Concrete
     {
         public readonly TelegramBotClient Client;
 
-        private List<CronBasedScheduler> _runningTasks;
+        private List<Scheduler> _runningTasks;
         public IEnumerable<string> Tasks => _runningTasks.Select(t => t.DelayedTask.Name);
 
         private User _user;
@@ -26,11 +27,11 @@ namespace TelegramReminder.Model.Concrete
 
             _knownCommands.AddRange(new Command[]
             {
-                new ChangeTitleCommand(this),
+                new TitleCountdownCmd(this),
                 new GetRunningTasksCmd(this)
             });
 
-            _runningTasks = new List<CronBasedScheduler>();
+            _runningTasks = new List<Scheduler>();
         }
 
         public async Task<User> User() =>
@@ -52,7 +53,10 @@ namespace TelegramReminder.Model.Concrete
                 var delayedCommand = command as IDelayed;
                 var job = delayedCommand.ToDelayedTask(commandArgs, update);
 
-                var scheduler = new CronBasedScheduler().Schedule(job);
+                var scheduler = new Scheduler()
+                    .Schedule(job)
+                    .WhenFinished(Remove);
+
                 scheduler.Start();
 
                 _runningTasks.Add(scheduler);
@@ -61,5 +65,8 @@ namespace TelegramReminder.Model.Concrete
 
             return command.Execute(update, commandArgs);
         }
+
+        private void Remove(Scheduler scheduler) =>
+            _runningTasks.Remove(scheduler);
     }
 }

@@ -7,12 +7,13 @@ using TelegramReminder.Model.Extensions;
 
 namespace TelegramReminder.Model.Concrete.Commands.Tasks
 {
-    public class ChangeTitleCommand : Command, IDelayed
+    public class TitleCountdownCmd : Command, IDelayed
     {
         public override string Tag => "set_title";
-        public override IEnumerable<string> RequiredArgs { get; } = new List<string> { "cron", "deadline", "message", };
+        public override IEnumerable<string> RequiredArgs { get; } =
+            new List<string> { "cron", "deadline", "message", };
 
-        public ChangeTitleCommand(TelegramBot bot) : base(bot)
+        public TitleCountdownCmd(TelegramBot bot) : base(bot)
         { }
 
         public override async Task Execute(Update update, CommandArgs args)
@@ -25,7 +26,7 @@ namespace TelegramReminder.Model.Concrete.Commands.Tasks
 
             try
             {
-                var dateTime = DateTime.ParseExact(deadline, "dd/MM/yyyy", null);
+                var dateTime = deadline.ToDateTime();
 
                 var daysToWait = (int)(dateTime - DateTime.UtcNow).TotalDays;
                 var title = string.Format(message, daysToWait.ToString());
@@ -41,12 +42,14 @@ namespace TelegramReminder.Model.Concrete.Commands.Tasks
         public IDelayedTask ToDelayedTask(CommandArgs args, Update update)
         {
             var cron = args.ArgumentOrEmpty("cron");
+            var deadline = args.ArgumentOrEmpty("deadline").ToDateTime();
             var autorestart = args.ArgumentOrEmpty("autorestart").ToBool();
             var timezone = args.ArgumentOrEmpty("timezone").ToTimeZone();
 
             var job = new TelegramDelayedTask(update, this, args, cron)
                 .WithAutoRestart(autorestart)
-                .WithTimezone(timezone);
+                .WithTimezone(timezone)
+                .WithDeadline(deadline);
 
             return job;
         }

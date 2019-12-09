@@ -4,13 +4,14 @@ using System.Threading.Tasks;
 
 namespace TelegramReminder.Model
 {
-    public class CronBasedScheduler
+    public class Scheduler
     {
         public IDelayedTask DelayedTask { get; private set; }
 
         private bool _autoRestart;
+        private Action<Scheduler> _whenFinish;
 
-        public CronBasedScheduler Schedule(IDelayedTask task)
+        public Scheduler Schedule(IDelayedTask task)
         {
             DelayedTask = task;
             _autoRestart = task.AutoRestart;
@@ -30,12 +31,21 @@ namespace TelegramReminder.Model
                 .ContinueWith(t => InvokeEventAndRestartIfNeeded());
         }
 
+        public Scheduler WhenFinished(Action<Scheduler> then)
+        {
+            _whenFinish = then;
+            return this;
+        }
+
         private async Task InvokeEventAndRestartIfNeeded()
         {
             await DelayedTask.Execute();
 
-            if (!_autoRestart)
+            if (DelayedTask.CanBeStarted is false)
+            {
+                _whenFinish?.Invoke(this);
                 return;
+            }
 
             Start();
         }

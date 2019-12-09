@@ -10,9 +10,13 @@ namespace TelegramReminder.Model.Concrete.Commands.Tasks
         public string Name => _cmd?.Tag ?? "undefined";
 
         public string Cron { get; protected set; }
-        public TimeZoneInfo TimeZone { get; protected set; }
+        public TimeZoneInfo TimeZone { get; protected set; } = TimeZoneInfo.Utc;
         public bool AutoRestart { get; protected set; }
+        public DateTime Deadline { get; private set; }
 
+        public bool CanBeStarted => 
+            AutoRestart && Deadline <= TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZone);
+        
         private CommandArgs _commandArgs;
         private Command _cmd;
         private Update _update;
@@ -35,6 +39,12 @@ namespace TelegramReminder.Model.Concrete.Commands.Tasks
         public TelegramDelayedTask WithTimezone(TimeZoneInfo timeZone)
         {
             TimeZone = timeZone;
+            return this;
+        }
+
+        public TelegramDelayedTask WithDeadline(DateTime deadline)
+        {
+            Deadline = deadline;
             return this;
         }
 

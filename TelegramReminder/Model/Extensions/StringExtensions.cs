@@ -37,6 +37,18 @@ namespace TelegramReminder.Model.Extensions
             }
         }
 
+        public static DateTime ToDateTime(this string self)
+        {
+            try
+            {
+               return DateTime.ParseExact(self, "dd/MM/yyyy", null);
+            }
+            catch(Exception e)
+            {
+                return default;
+            }
+        }
+
         public static bool IsNullOrEmpty(this string self) =>
             self == null || self == string.Empty;
     }
