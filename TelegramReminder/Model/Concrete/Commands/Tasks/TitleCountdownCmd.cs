@@ -7,7 +7,7 @@ using TelegramReminder.Model.Extensions;
 
 namespace TelegramReminder.Model.Concrete.Commands.Tasks
 {
-    public class TitleCountdownCmd : Command, IDelayed
+    public class TitleCountdownCmd : Command, IDelayedTaskConvertible
     {
         public override string Tag => "set_title";
         public override IEnumerable<string> RequiredArgs { get; } =

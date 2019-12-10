@@ -14,7 +14,7 @@ namespace TelegramReminder.Model.Concrete.Commands
 
         public override async Task Execute(Update update, CommandArgs args)
         {
-            var message = string.Join(", ", Bot.Tasks);
+            var message = string.Join(", ", Bot.Tasks.Of(update.ChatId()));
 
             await (message.IsNullOrEmpty()
                 ? "no tasks found"

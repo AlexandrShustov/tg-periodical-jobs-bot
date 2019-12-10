@@ -5,6 +5,8 @@ namespace TelegramReminder.Model
 {
     public interface IDelayedTask
     {
+        long ChatId { get; }
+
         string Name { get; }
 
         string Cron { get; }

@@ -15,10 +15,8 @@ namespace TelegramReminder.Controllers
     {
         private readonly TelegramBot _bot;
 
-        public UpdateListeningController(TelegramBot bot)
-        {
+        public UpdateListeningController(TelegramBot bot) =>
             _bot = bot;
-        }
 
         [HttpPost]
         [Route("api/bot/update")]
@@ -27,9 +25,6 @@ namespace TelegramReminder.Controllers
             var message = update?.Message?.Text;
             if (message.IsNullOrEmpty())
                 return BadRequest();
-
-            if (!update.HasMentionOf(await _bot.User()))
-                return Ok();
 
             var parseResult = Input.Parse(message);
 
@@ -44,12 +39,13 @@ namespace TelegramReminder.Controllers
             await $"Parsed to:\n {parseResult.ToString()}"
                 .AsMessageTo(update.ChatId(), _bot.Client);
 
-            var args = new CommandArgs(parseResult.Tag, parseResult.Arguments);
+            var args = new CommandArgs(parseResult.CommandTag, parseResult.Arguments);
 
             if (_bot.CanExecute(args))
                 await _bot.Execute(update, args);
             else
-                await $"Couldn`t execute command".AsMessageTo(update.ChatId(), _bot.Client);
+                await $"There is no command which I can execute. Check arguments, format or command name"
+                    .AsMessageTo(update.ChatId(), _bot.Client);
 
             return Ok();
         }
@@ -77,7 +73,7 @@ namespace TelegramReminder.Controllers
                 return Ok();
             }
 
-            var args = new CommandArgs(parseResult.Tag, parseResult.Arguments);
+            var args = new CommandArgs(parseResult.CommandTag, parseResult.Arguments);
 
             if (_bot.CanExecute(args))
                 await _bot.Execute(null, args);

@@ -2,11 +2,14 @@
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
 using TelegramReminder.Model.Abstract;
+using TelegramReminder.Model.Extensions;
 
 namespace TelegramReminder.Model.Concrete.Commands.Tasks
 {
     public class TelegramDelayedTask : IDelayedTask
     {
+        public long ChatId => _update?.ChatId() ?? 0;
+
         public string Name => _cmd?.Tag ?? "undefined";
 
         public string Cron { get; protected set; }

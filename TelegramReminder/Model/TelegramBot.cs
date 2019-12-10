@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Telegram.Bot;
@@ -15,7 +14,7 @@ namespace TelegramReminder.Model.Concrete
         public readonly TelegramBotClient Client;
 
         private List<Scheduler> _runningTasks;
-        public IEnumerable<string> Tasks => _runningTasks.Select(t => t.DelayedTask.Name);
+        public IEnumerable<IDelayedTask> Tasks => _runningTasks.Select(s => s.DelayedTask);
 
         private User _user;
         private readonly List<Command> _knownCommands = new List<Command>();
@@ -48,9 +47,9 @@ namespace TelegramReminder.Model.Concrete
             if (command == null)
                 return Task.CompletedTask;
 
-            if(command is IDelayed)
+            if(command is IDelayedTaskConvertible)
             {
-                var delayedCommand = command as IDelayed;
+                var delayedCommand = command as IDelayedTaskConvertible;
                 var job = delayedCommand.ToDelayedTask(commandArgs, update);
 
                 var scheduler = new Scheduler()
