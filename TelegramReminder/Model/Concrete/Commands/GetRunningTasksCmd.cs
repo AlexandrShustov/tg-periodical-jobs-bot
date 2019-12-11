@@ -8,6 +8,7 @@ namespace TelegramReminder.Model.Concrete.Commands
     public class GetRunningTasksCmd : Command
     {
         public override string Tag => "get_tasks";
+        public override string Description => "Returns currently running tasks for this chanell. Usage: /get_tasks";
 
         public GetRunningTasksCmd(TelegramBot bot) : base(bot)
         { }

@@ -16,8 +16,10 @@ namespace TelegramReminder.Model.Concrete
         private List<Scheduler> _runningTasks;
         public IEnumerable<IDelayedTask> Tasks => _runningTasks.Select(s => s.DelayedTask);
 
-        private User _user;
+        public IEnumerable<Command> Commands => _knownCommands;
         private readonly List<Command> _knownCommands = new List<Command>();
+
+        private User _user;
 
         public TelegramBot(string token, string webhookUrl)
         {
@@ -26,8 +28,9 @@ namespace TelegramReminder.Model.Concrete
 
             _knownCommands.AddRange(new Command[]
             {
+                new StartCmd(this),
                 new TitleCountdownCmd(this),
-                new GetRunningTasksCmd(this)
+                new GetRunningTasksCmd(this),
             });
 
             _runningTasks = new List<Scheduler>();

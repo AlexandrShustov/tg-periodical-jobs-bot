@@ -9,9 +9,10 @@ namespace TelegramReminder.Model.Concrete.Commands.Tasks
 {
     public class TitleCountdownCmd : Command, IDelayedTaskConvertible
     {
-        public override string Tag => "set_title";
-        public override IEnumerable<string> RequiredArgs { get; } =
-            new List<string> { "cron", "deadline", "message", };
+        public override string Tag => "title_countdown";
+        public override IEnumerable<string> RequiredArgs { get; } = new List<string> { "cron", "deadline", "message", };
+        public override string Description => "Creates a task that will rename the channel using specified text, which will be modified by incrementing number {0}." +
+            @" Usage: /title_countdown cron deadline message autorestart? timezone?";
 
         public TitleCountdownCmd(TelegramBot bot) : base(bot)
         { }
