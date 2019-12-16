@@ -6,7 +6,7 @@ using TelegramReminder.Model.Extensions;
 
 namespace TelegramReminder.Model.Concrete.Commands.Tasks
 {
-    public class TelegramDelayedTask : IDelayedTask
+    public class TelegramDelayedTask : IEditDelayedTask
     {
         public long ChatId => _update?.ChatId() ?? 0;
 
@@ -18,7 +18,7 @@ namespace TelegramReminder.Model.Concrete.Commands.Tasks
         public DateTime Deadline { get; private set; }
 
         public bool CanBeStarted => 
-            AutoRestart && Deadline <= TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZone);
+            AutoRestart && Deadline >= TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZone);
         
         private CommandArgs _commandArgs;
         private Command _cmd;
@@ -53,5 +53,8 @@ namespace TelegramReminder.Model.Concrete.Commands.Tasks
 
         public async Task Execute() =>
             await _cmd.Execute(_update, _commandArgs);
+
+        public void Disable() =>
+            AutoRestart = false;
     }
 }

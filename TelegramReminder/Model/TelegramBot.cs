@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Telegram.Bot;
@@ -31,9 +32,21 @@ namespace TelegramReminder.Model.Concrete
                 new StartCmd(this),
                 new TitleCountdownCmd(this),
                 new GetRunningTasksCmd(this),
+                new StopTaskCmd(this)
             });
 
             _runningTasks = new List<Scheduler>();
+        }
+
+        internal void StopTask(int id)
+        {
+            if (_runningTasks.Count < id)
+                return;
+
+            var scheduler = _runningTasks[id];
+            scheduler.DelayedTask.Disable();
+
+            _runningTasks.Remove(_runningTasks[id]);
         }
 
         public async Task<User> User() =>

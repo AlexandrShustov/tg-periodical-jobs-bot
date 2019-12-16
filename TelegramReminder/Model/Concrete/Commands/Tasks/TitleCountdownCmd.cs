@@ -41,7 +41,7 @@ namespace TelegramReminder.Model.Concrete.Commands.Tasks
             }
         }
 
-        public IDelayedTask ToDelayedTask(CommandArgs args, Update update)
+        public IEditDelayedTask ToDelayedTask(CommandArgs args, Update update)
         {
             var cron = args.ArgumentOrEmpty("cron");
             var deadline = args.ArgumentOrEmpty("deadline").ToDateTime();
@@ -49,9 +49,13 @@ namespace TelegramReminder.Model.Concrete.Commands.Tasks
             var timezone = args.ArgumentOrEmpty("timezone").ToTimeZone();
 
             var job = new TelegramDelayedTask(update, this, args, cron)
-                .WithAutoRestart(autorestart)
-                .WithTimezone(timezone)
-                .WithDeadline(deadline);
+                .WithAutoRestart(autorestart);
+
+            if (timezone != null)
+                job.WithTimezone(timezone);
+
+            if(deadline != default)
+                job.WithDeadline(deadline);
 
             return job;
         }

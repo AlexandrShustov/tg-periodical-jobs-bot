@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
 using Telegram.Bot.Types;
 using TelegramReminder.Model.Abstract;
 using TelegramReminder.Model.Extensions;
@@ -15,12 +17,24 @@ namespace TelegramReminder.Model.Concrete.Commands
 
         public override async Task Execute(Update update, CommandArgs args)
         {
-            var message = string.Join(", ", Bot.Tasks.Of(update.ChatId()));
+            try
+            {
+                var list = Bot.Tasks.ToList();
+                var pairs = Bot.Tasks
+                    .Of(update.ChatId())
+                    .Select(t => $"id:{list.IndexOf(t)} name:{t.Name}");
 
-            await (message.IsNullOrEmpty()
-                ? "no tasks found"
-                : message)
-                .AsMessageTo(update.ChatId(), Bot.Client);
+                var message = string.Join(", ", pairs);
+
+                await (message.IsNullOrEmpty()
+                    ? "no tasks found"
+                    : message)
+                    .AsMessageTo(update.ChatId(), Bot.Client);
+            }
+            catch (Exception e)
+            {
+                await e.Message.AsMessageTo(update.ChatId(), Bot.Client);
+            }          
         }
     }
 }

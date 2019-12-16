@@ -17,4 +17,9 @@ namespace TelegramReminder.Model
 
         Task Execute();
     }
+
+    public interface IEditDelayedTask : IDelayedTask
+    {
+        void Disable();
+    }
 }

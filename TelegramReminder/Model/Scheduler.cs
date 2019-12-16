@@ -6,16 +6,13 @@ namespace TelegramReminder.Model
 {
     public class Scheduler
     {
-        public IDelayedTask DelayedTask { get; private set; }
+        public IEditDelayedTask DelayedTask { get; private set; }
 
-        private bool _autoRestart;
         private Action<Scheduler> _whenFinish;
 
-        public Scheduler Schedule(IDelayedTask task)
+        public Scheduler Schedule(IEditDelayedTask task)
         {
             DelayedTask = task;
-            _autoRestart = task.AutoRestart;
-
             return this;
         }
 

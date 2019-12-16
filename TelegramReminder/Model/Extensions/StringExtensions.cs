@@ -25,6 +25,15 @@ namespace TelegramReminder.Model.Extensions
                 : default;
         }
 
+        public static int? ToInt(this string self)
+        {
+            var res = int.TryParse(self, out var value);
+
+            return res
+                ? value
+                : (int?) null;
+        }
+
         public static TimeZoneInfo ToTimeZone(this string self)
         {
             try
