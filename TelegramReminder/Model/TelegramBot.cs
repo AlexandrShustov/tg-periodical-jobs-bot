@@ -7,6 +7,7 @@ using Telegram.Bot.Types;
 using TelegramReminder.Model.Abstract;
 using TelegramReminder.Model.Concrete.Commands;
 using TelegramReminder.Model.Concrete.Commands.Tasks;
+using TelegramReminder.Model.Exceptions;
 
 namespace TelegramReminder.Model.Concrete
 {
@@ -57,20 +58,33 @@ namespace TelegramReminder.Model.Concrete
 
         internal Task Execute(Update update, CommandArgs commandArgs)
         {
+            try
+            {
+                return ExecuteInternal(update, commandArgs);
+            }
+            catch(Exception e)
+            {
+                throw e.Message.AsCommandLogicException(update);
+            }
+        }
+
+        private Task ExecuteInternal(Update update, CommandArgs commandArgs)
+        {
             var tag = commandArgs.Tag;
             var command = _knownCommands.FirstOrDefault(c => c.Tag == tag);
 
             if (command == null)
                 return Task.CompletedTask;
 
-            if(command is IDelayedTaskConvertible)
+            if (command is IDelayedTaskConvertible)
             {
                 var delayedCommand = command as IDelayedTaskConvertible;
                 var job = delayedCommand.ToDelayedTask(commandArgs, update);
 
                 var scheduler = new Scheduler()
                     .Schedule(job)
-                    .WhenFinished(Remove);
+                    .WhenFinished(Remove)
+                    .WhenError(Remove);
 
                 scheduler.Start();
 

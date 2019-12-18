@@ -11,26 +11,18 @@ namespace TelegramReminder.Model.Concrete.Commands
     {
         public override string Tag => "start";
 
-        public StartCmd(TelegramBot bot) : base(bot) 
+        public StartCmd(TelegramBot bot) : base(bot)
         { }
 
         public async override Task Execute(Update update, CommandArgs args)
         {
-            try
-            {
-                var commandsInfo = string.Join("\n", Bot.Commands
-                    .Where(c => c != this)
-                    .Select(c => $"{c.Tag} : {c.Description}"));
+            var commandsInfo = string.Join("\n", Bot.Commands
+                .Where(c => c != this)
+                .Select(c => $"{c.Tag} : {c.Description}"));
 
-                var text = $"Hello! This what you can do: \n{commandsInfo}";
+            var text = $"Hello! This what you can do: \n{commandsInfo}";
 
-                await Bot.Client.SendTextMessageAsync(update.ChatId(), text);
-            }
-            catch (Exception e)
-            {
-                await e.Message.AsMessageTo(update.ChatId(), Bot.Client);
-            }
-
+            await Bot.Client.SendTextMessageAsync(update.ChatId(), text);
         }
     }
 }

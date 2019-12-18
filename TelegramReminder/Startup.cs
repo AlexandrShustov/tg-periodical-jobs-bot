@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using TelegramReminder.Extensions;
+using TelegramReminder.Model.Concrete;
 
 namespace TelegramReminder
 {
@@ -26,7 +27,7 @@ namespace TelegramReminder
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, Microsoft.AspNetCore.Hosting.IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, Microsoft.AspNetCore.Hosting.IHostingEnvironment env, TelegramBot bot)
         {
             if (env.IsDevelopment())
             {
@@ -38,6 +39,7 @@ namespace TelegramReminder
                 app.UseHsts();
             }
 
+            app.ConfigureExceptionHandler(bot);
             app.UseHttpsRedirection();
             app.UseMvc();
         }

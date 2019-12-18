@@ -17,24 +17,17 @@ namespace TelegramReminder.Model.Concrete.Commands
 
         public override async Task Execute(Update update, CommandArgs args)
         {
-            try
-            {
-                var list = Bot.Tasks.ToList();
-                var pairs = Bot.Tasks
-                    .Of(update.ChatId())
-                    .Select(t => $"id:{list.IndexOf(t)} name:{t.Name}");
+            var list = Bot.Tasks.ToList();
+            var pairs = Bot.Tasks
+                .Of(update.ChatId())
+                .Select(t => $"id:{list.IndexOf(t)} name:{t.Name}");
 
-                var message = string.Join(", ", pairs);
+            var message = string.Join(", ", pairs);
 
-                await (message.IsNullOrEmpty()
-                    ? "no tasks found"
-                    : message)
-                    .AsMessageTo(update.ChatId(), Bot.Client);
-            }
-            catch (Exception e)
-            {
-                await e.Message.AsMessageTo(update.ChatId(), Bot.Client);
-            }          
+            await (message.IsNullOrEmpty()
+                ? "no tasks found"
+                : message)
+                .AsMessageTo(update.ChatId(), Bot.Client);
         }
     }
 }

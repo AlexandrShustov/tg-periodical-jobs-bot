@@ -25,20 +25,12 @@ namespace TelegramReminder.Model.Concrete.Commands.Tasks
             if (message.IsNullOrEmpty() || deadline.IsNullOrEmpty())
                 return;
 
-            try
-            {
-                var dateTime = deadline.ToDateTime();
+            var dateTime = deadline.ToDateTime();
 
-                var daysToWait = (int)(dateTime - DateTime.UtcNow).TotalDays;
-                var title = string.Format(message, daysToWait.ToString());
+            var daysToWait = (int)(dateTime - DateTime.UtcNow).TotalDays;
+            var title = string.Format(message, daysToWait.ToString());
 
-                await Bot.Client.SetChatTitleAsync(update.ChatId(), title);
-            }
-            catch (Exception e)
-            {
-                await $"Something went wrong: {e.Message}"
-                    .AsMessageTo(update.ChatId(), Bot.Client);
-            }
+            await Bot.Client.SetChatTitleAsync(update.ChatId(), title);
         }
 
         public IEditDelayedTask ToDelayedTask(CommandArgs args, Update update)
@@ -54,7 +46,7 @@ namespace TelegramReminder.Model.Concrete.Commands.Tasks
             if (timezone != null)
                 job.WithTimezone(timezone);
 
-            if(deadline != default)
+            if (deadline != default)
                 job.WithDeadline(deadline);
 
             return job;

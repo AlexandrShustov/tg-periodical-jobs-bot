@@ -18,25 +18,18 @@ namespace TelegramReminder.Model.Concrete
 
         public async override Task Execute(Update update, CommandArgs args)
         {
-            try
-            {
-                var id = args.ArgumentOrEmpty("id").ToInt();
+            var id = args.ArgumentOrEmpty("id").ToInt();
 
-                if (id == null)
-                    throw new ArgumentException("Argument id coudn`t be parsed");
+            if (id == null)
+                throw new ArgumentException("Argument id coudn`t be parsed");
 
-                if (Bot.Tasks.Count() < id)
-                    throw new ArgumentException("There is no running task with specified id");
+            if (Bot.Tasks.Count() < id)
+                throw new ArgumentException("There is no running task with specified id");
 
-                Bot.StopTask(id.Value);
-                await $"Task {id.Value} was stopped"
-                    .AsMessageTo(update.ChatId(), Bot.Client);
-            }
-            catch (Exception e)
-            {
-                await e.Message
-                    .AsMessageTo(update.ChatId(), Bot.Client);
-            }
+            Bot.StopTask(id.Value);
+
+            await $"Task {id.Value} was stopped"
+                .AsMessageTo(update.ChatId(), Bot.Client);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Cronos;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace TelegramReminder.Model
@@ -9,6 +10,8 @@ namespace TelegramReminder.Model
         public IEditDelayedTask DelayedTask { get; private set; }
 
         private Action<Scheduler> _whenFinish;
+        private Action<Scheduler> _whenError;
+        private Task<Task> _taskHandle;
 
         public Scheduler Schedule(IEditDelayedTask task)
         {
@@ -18,20 +21,28 @@ namespace TelegramReminder.Model
 
         public void Start()
         {
-            var timeToWait = CronExpression
-                .Parse(DelayedTask.Cron)
-                .GetNextOccurrence(DateTime.UtcNow, DelayedTask.TimeZone).Value;
+            var cancelTokenSource = new CancellationTokenSource();
 
-            var now = DateTime.UtcNow;
+            try
+            {
+                var timeToWait = CronExpression
+                    .Parse(DelayedTask.Cron)
+                    .GetNextOccurrence(DateTime.UtcNow, DelayedTask.TimeZone).Value;
 
-            Task.Delay(timeToWait - now)
-                .ContinueWith(t => InvokeEventAndRestartIfNeeded());
-        }
+                var now = DateTime.UtcNow;
 
-        public Scheduler WhenFinished(Action<Scheduler> then)
-        {
-            _whenFinish = then;
-            return this;
+                _taskHandle = Task.Delay(timeToWait - now, cancelTokenSource.Token)
+                    .ContinueWith(t => InvokeEventAndRestartIfNeeded());
+            }
+            catch(Exception e)
+            {
+                _whenError?.Invoke(this);
+
+                if (!_taskHandle.IsCompleted)
+                    cancelTokenSource.Cancel();
+
+                _taskHandle = null;
+            }
         }
 
         private async Task InvokeEventAndRestartIfNeeded()
@@ -45,6 +56,18 @@ namespace TelegramReminder.Model
             }
 
             Start();
+        }
+
+        public Scheduler WhenFinished(Action<Scheduler> then)
+        {
+            _whenFinish = then;
+            return this;
+        }
+
+        internal Scheduler WhenError(Action<Scheduler> whenError)
+        {
+            _whenError = whenError;
+            return this;
         }
     }
 }
