@@ -8,24 +8,24 @@ namespace TelegramReminder.Extensions
 {
     public  static class AppBuilderExtensions
     {
-        public static void ConfigureExceptionHandler(this IApplicationBuilder app, TelegramBot bot)
+        public static void ConfigureExceptionHandler(this IApplicationBuilder app, object bot)
         {
             app.UseExceptionHandler(appError =>
             {
-                appError.Run(async context =>
-                {
-                    var error = context.Features.Get<IExceptionHandlerPathFeature>();
-                    var telegramException = error.Error as CommandLogicException;
+                //appError.Run(async context =>
+                //{
+                //    var error = context.Features.Get<IExceptionHandlerPathFeature>();
+                //    var telegramException = error.Error as CommandLogicException;
 
-                    if (telegramException is null)
-                        return;
+                //    if (telegramException is null)
+                //        return;
 
-                    if (telegramException.Update == null)
-                        return;
+                //    if (telegramException.Update == null)
+                //        return;
 
-                    await error.Error.Message
-                        .AsMessageTo(telegramException.Update.ChatId(), bot.Client);
-                });
+                //    await error.Error.Message
+                //        .AsMessageTo(telegramException.Update.ChatId(), bot.Client);
+                //});
             });
         }
     }

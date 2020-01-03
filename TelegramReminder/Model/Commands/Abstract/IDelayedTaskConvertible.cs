@@ -5,6 +5,6 @@ namespace TelegramReminder.Model.Abstract
 {
     public interface IDelayedTaskConvertible
     {
-        IEditDelayedTask ToDelayedTask(CommandArgs args, Update update);
+        IEditDelayedTask ToDelayedTask(Context args, Update update);
     }
 }

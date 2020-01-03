@@ -5,18 +5,18 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Telegram.Bot.Types;
 using TelegramReminder.Model;
-using TelegramReminder.Model.Concrete;
 using TelegramReminder.Model.Extensions;
+using TelegramReminder.Services.Abstract;
 
 namespace TelegramReminder.Controllers
 {
     [ApiController]
     public class UpdateListeningController : Controller
     {
-        private readonly TelegramBot _bot;
+        private readonly ICommandsService _commands;
 
-        public UpdateListeningController(TelegramBot bot) =>
-            _bot = bot;
+        public UpdateListeningController(ICommandsService commandsService) =>
+            _commands = commandsService;
 
         [HttpPost]
         [Route("api/bot/update")]
@@ -26,27 +26,26 @@ namespace TelegramReminder.Controllers
             if (message.IsNullOrEmpty())
                 return BadRequest();
 
-            var parseResult = Input.Parse(message);
+            var parsed = Input.Parse(message);
 
             if (Input.Errors.Any())
             {
                 foreach (var error in Input.Errors)
-                    await error.AsMessageTo(update.ChatId(), _bot.Client);
+                    await _commands
+                        .OneFrom(new Context("message", update).UseLocal(with: error))
+                        .Execute();
 
                 return Ok();
             }
 
-            await $"Parsed to:\n {parseResult.ToString()}"
-                .AsMessageTo(update.ChatId(), _bot.Client);
+            await _commands
+                .OneFrom(new Context("message", update).UseLocal(with: $"Parsed to:\n {parsed.ToString()}"))
+                .Execute();
 
-            var args = new CommandArgs(parseResult.CommandTag, parseResult.Arguments);
-
-            if (_bot.CanExecute(args))
-                await _bot.Execute(update, args);
-            else
-                await $"There is no command which I can execute. Check arguments, format or command name"
-                    .AsMessageTo(update.ChatId(), _bot.Client);
-
+            await _commands
+                .OneFrom(new Context(parsed.Tag, update).UseExternal(parsed.Arguments))
+                .Execute();
+            
             return Ok();
         }
 
@@ -60,23 +59,25 @@ namespace TelegramReminder.Controllers
                 message = await reader.ReadToEndAsync();
             }
 
-            if (message.IsNullOrEmpty())
-                return BadRequest();
-
             var parseResult = Input.Parse(message);
 
             if (Input.Errors.Any())
             {
                 foreach (var error in Input.Errors)
-                    continue;
-
+                    await _commands
+                        .OneFrom(new Context("debug", null).UseLocal(with: error))
+                        .Execute();
+                       
                 return Ok();
             }
 
-            var args = new CommandArgs(parseResult.CommandTag, parseResult.Arguments);
+            var context = new Context("debug", null)
+                .UseLocal(with: $"Parsed to:\n {parseResult.ToString()}");
 
-            if (_bot.CanExecute(args))
-                await _bot.Execute(null, args);
+            await _commands
+                .OneFrom(context)
+                .IfError(e => { })
+                .Execute();
 
             return Ok();
         }

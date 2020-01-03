@@ -10,7 +10,7 @@ namespace TelegramReminder.Model.Concrete.Commands.Tasks
     {
         public long ChatId => _update?.ChatId() ?? 0;
 
-        public string Name => _cmd?.Tag ?? "undefined";
+        public string Name => "undefined";
 
         public string Cron { get; protected set; }
         public TimeZoneInfo TimeZone { get; protected set; } = TimeZoneInfo.Utc;
@@ -20,11 +20,11 @@ namespace TelegramReminder.Model.Concrete.Commands.Tasks
         public bool CanBeStarted => 
             AutoRestart && Deadline >= TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZone);
         
-        private CommandArgs _commandArgs;
+        private Context _commandArgs;
         private Command _cmd;
         private Update _update;
 
-        public TelegramDelayedTask(Update update, Command cmd, CommandArgs args, string cron)
+        public TelegramDelayedTask(Update update, Command cmd, Context args, string cron)
         {
             _update = update;
             _commandArgs = args;
@@ -51,8 +51,8 @@ namespace TelegramReminder.Model.Concrete.Commands.Tasks
             return this;
         }
 
-        public async Task Execute() =>
-            await _cmd.Execute(_update, _commandArgs);
+        public Task Execute() =>
+            Task.CompletedTask;
 
         public void Disable() =>
             AutoRestart = false;

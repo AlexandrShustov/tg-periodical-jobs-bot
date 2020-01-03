@@ -6,7 +6,7 @@ namespace TelegramReminder.Model
 {
     public class ParseResult
     {
-        public string CommandTag { get; set; }
+        public string Tag { get; set; }
         public IReadOnlyDictionary<string, string> Arguments { get; set; }
 
         public override string ToString()
@@ -14,7 +14,7 @@ namespace TelegramReminder.Model
             var template = "Command: {0}\n" +
                            "Args: {1}\n";
 
-            var command = CommandTag ?? "none";
+            var command = Tag ?? "none";
             var args = "\n-" + string
                 .Join("-", Arguments?
                 .Select(a => $" {a.Key} : {a.Value} \n") ?? new[] { "none" });
@@ -39,7 +39,7 @@ namespace TelegramReminder.Model
 
             return new ParseResult
             {
-                CommandTag = CommandIn(text),
+                Tag = CommandIn(text),
                 Arguments = ArgumentsIn(text)
             };
         }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using TelegramReminder.Model.Concrete;
+using TelegramReminder.Services;
+using TelegramReminder.Services.Abstract;
 
 namespace TelegramReminder.Extensions
 {
@@ -11,8 +12,8 @@ namespace TelegramReminder.Extensions
             var appKey = config["Key"];
             var url = config["Url"];
 
-            var bot = new TelegramBot(appKey, url);
-            services.AddSingleton(bot);
+            var bot = new BotService(appKey, url);
+            services.AddSingleton<IBotService>(bot);
         }
     }
 }
